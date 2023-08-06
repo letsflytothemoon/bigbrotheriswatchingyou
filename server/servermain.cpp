@@ -195,6 +195,10 @@ int main()
 							break;
 						}
 					})
+				},
+				{
+					"vaficon.ico",
+					ApiEndPoint([](HttpRequestContext&){})
 				}
 			}));
 	
