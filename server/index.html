@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+    <title>Active sessions</title>
+    <script type="text/javascript">
+        let page = {};
+
+        page.CreateRequest = function () {
+            let Request = false;
+
+            if (window.XMLHttpRequest) {
+                Request = new XMLHttpRequest();
+            }
+            else if (window.ActiveXObject) {
+                try {
+                    Request = new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                catch (CatchException) {
+                    Request = new ActiveXObject("Msxml2.XMLHTTP");
+                }
+            }
+
+            if (!Request) {
+                console.log("cant create request");
+            }
+
+            return Request;
+        };
+
+        page.GetApiResult = function(url, onCompete) {
+            const request = page.CreateRequest();
+
+            request.onreadystatechange = function () {
+                if (request.readyState == 4) {
+                    onCompete(JSON.parse(request.responseText));
+                }
+            }
+
+            request.open("get", url, true);
+
+            request.send(null);
+        }
+
+        page.UpdateActiveSessions = function () {
+            const container = document.getElementById("activesessions-container");
+            page.GetApiResult("/api/activesessions", function (sessions) {
+                let innerHtml = "";
+                sessions.forEach(session => {
+                    innerHtml += "user: " + session.username + "<br><a href='/screenshot/" + session.username + "'>screenshot</a><br>" +
+                        "started: " + session.session.started + "<br>" +
+                        "address: " + session.session.address + "<br>---------------------------";
+                });
+                container.innerHTML = innerHtml;
+            });
+            return false;
+        };
+
+        document.addEventListener("DOMContentLoaded", page.UpdateActiveSessions);
+    </script>
+    </head>
+<body>
+    <a href="/">active sessions</a> <a href="/log">sessions log</a><br>
+    <div id="activesessions-container"></div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+[submodule "server/webserverlib"]
+	path = server/webserverlib
+	url = git@github.com:letsflytothemoon/webserverlib.git
+[submodule "webserverlib"]
+	path = webserverlib
+	url = git@github.com:letsflytothemoon/webserverlib
