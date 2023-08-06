@@ -1,0 +1,5 @@
+{
+  "serveraddress": "127.0.0.1",
+  "serverport": 11111,
+  "listenport": 22222
+}

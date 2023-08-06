@@ -4,6 +4,9 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <cstdlib>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include "../httpclient.h"
 #include "../webserverlib/webserver.h"
 #include "bitmaps.h"
@@ -12,6 +15,9 @@ std::atomic<bool> stop = false;
 
 char userName[128];
 DWORD userNameSize = (DWORD)sizeof(userName);
+unsigned short listenPort;
+unsigned short serverPort;
+std::string serverAddress;
 
 using WebServer = webserverlib::WebServer;
 
@@ -25,7 +31,7 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
     case CTRL_LOGOFF_EVENT:
     case CTRL_SHUTDOWN_EVENT:
     {
-        HttpRequest logoutReportRequest{ "127.0.0.1", "11111", std::string("/api/logout/") + userName, 11 };
+        HttpRequest logoutReportRequest{ serverAddress, std::to_string(serverPort) , std::string("/api/logout/") + userName, 11 };
         logoutReportRequest.Get();
         stop = 1;
         break;
@@ -37,13 +43,25 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 
 int main()
 {
-    SetConsoleCtrlHandler(CtrlHandler, TRUE);
+    std::stringstream buffer;
+
+    {
+        std::ifstream ifconfigfile("clientconfig.json");
+        buffer << ifconfigfile.rdbuf();
+        boost::property_tree::ptree configJsonRoot;
+        boost::property_tree::read_json(buffer, configJsonRoot);
+        serverAddress = configJsonRoot.get<std::string>("serveraddress");
+        serverPort = configJsonRoot.get<unsigned short>("serverport");
+        listenPort = configJsonRoot.get<unsigned short>("listenport");
+    }
 
     GetUserNameA(userName, &userNameSize);
     {
-        HttpRequest loginReportRequest{ "127.0.0.1", "11111", std::string("/api/login/") + userName, 11 };
+        HttpRequest loginReportRequest{ serverAddress, std::to_string(serverPort), std::string("/api/login/") + userName, 11 };
         loginReportRequest.Get();
     }
+
+    SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
     WebServer webServer(
         WebServer::SetPort(22222),

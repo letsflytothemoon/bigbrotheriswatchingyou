@@ -4,6 +4,9 @@
 #include <string>
 #include <set>
 #include <list>
+#include <cstdlib>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include "session.h"
 #include "../webserverlib/webserver.h"
 #include "../httpclient.h"
@@ -12,6 +15,9 @@ using namespace webserverlib;
 
 std::map<std::string, std::set<Session>> sessionsLog;
 std::map<std::string, Session> activeSessions;
+unsigned short listenPort;
+unsigned short clientPort;
+std::string bindAddress;
 
 enum ApiMethodId
 {
@@ -35,8 +41,21 @@ std::map<std::string, ApiMethodId> methodsIds
 
 int main()
 {
+	std::stringstream buffer;
+
+	{
+		std::ifstream ifconfigfile("serverconfig.json");
+		buffer << ifconfigfile.rdbuf();
+		boost::property_tree::ptree configJsonRoot;
+		boost::property_tree::read_json(buffer, configJsonRoot);
+		bindAddress = configJsonRoot.get<std::string>("bindaddress");
+		listenPort = configJsonRoot.get<unsigned short>("listenport");
+		clientPort = configJsonRoot.get<unsigned short>("clientport");
+	}
+
 	WebServer webServer(
-		WebServer::SetPort(11111),
+		WebServer::SetPort(listenPort),
+		WebServer::SetAddress(bindAddress),
 		WebServer::SetRouter(
 			Router
 			{
@@ -162,7 +181,7 @@ int main()
 								break;
 							}
 							std::string address = findResultIterator->second.address;
-							HttpRequest request{ address, "22222", "/takescreenshot", 11 };
+							HttpRequest request{ address, std::to_string(clientPort), "/takescreenshot", 11 };
 							http::response<http::dynamic_body> clientMachineResponse{ std::move(request.Get()) };
 							context.headers[http::field::content_disposition] = "attachment; filename = img.bmp";
 							context.headers[http::field::content_type] = "image/bmp";
