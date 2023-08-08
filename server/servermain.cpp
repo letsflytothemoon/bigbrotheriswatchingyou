@@ -19,26 +19,6 @@ unsigned short listenPort;
 unsigned short clientPort;
 std::string bindAddress;
 
-enum ApiMethodId
-{
-	login,
-	logout,
-	userlog,
-	sessionslog,
-	activesessions,
-	takescreenshot
-};
-
-std::map<std::string, ApiMethodId> methodsIds
-{
-	{"login", ApiMethodId::login},
-	{"logout", ApiMethodId::logout},
-	{"userlog", ApiMethodId::userlog},
-	{"sessionslog", ApiMethodId::sessionslog},
-	{"activesessions", ApiMethodId::activesessions},
-	{"takescreenshot", ApiMethodId::takescreenshot}
-};
-
 int main()
 {
 	std::stringstream buffer;
@@ -73,10 +53,7 @@ int main()
 					{
 						std::string userName = context.GetPathStep();
 						if (userName == "")
-						{
-							context.responseStream << "404";
-							return;
-						}
+							throw http::status::not_found;
 						context.responseStream << "<!doctype html><html><head><title></title></head>";
 						context.responseStream << "<body><a href=\"/\">active sessions</a> <a href=\"/log\">sessions log</a><br>";
 						context.responseStream << "<img src=\"/api/takescreenshot/" << userName << "\"></body></html>";
@@ -102,7 +79,10 @@ int main()
 							ApiEndPoint{[](HttpRequestContext& context)
 							{
 								std::string userName = context.GetPathStep();
-								Session session = activeSessions[userName];
+								auto findResultIterator = activeSessions.find(userName);
+								if (findResultIterator == activeSessions.end())
+									throw http::status::not_found;
+								Session session = findResultIterator->second;
 								activeSessions.erase(userName);
 								session.stopped = time_point::clock::now();
 								session.finished = true;
@@ -117,10 +97,7 @@ int main()
 								std::string userName = context.GetPathStep();
 								auto findResultIterator = sessionsLog.find(userName);
 								if (findResultIterator == sessionsLog.end())
-								{
-									context.responseStream << "404"; //or bad request or something else
-									return;
-								}
+									throw http::status::not_found;
 								std::stringstream& stream = context.responseStream;
 								stream << "[ ";
 								std::set<Session>& sessions = findResultIterator->second;
@@ -180,10 +157,7 @@ int main()
 								std::string userName = context.GetPathStep();
 								auto findResultIterator = activeSessions.find(userName);
 								if (findResultIterator == activeSessions.end())
-								{
-									context.responseStream << "404"; //or bad request or something else
-									return;
-								}
+									throw http::status::not_found;
 								std::string address = findResultIterator->second.address;
 								HttpRequest request{ address, std::to_string(clientPort), "/takescreenshot", 11 };
 								http::response<http::dynamic_body> clientMachineResponse{ std::move(request.Get()) };
