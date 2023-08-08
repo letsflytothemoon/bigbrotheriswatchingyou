@@ -198,7 +198,7 @@ int main()
 				},
 				{
 					"favicon.ico",
-					Router([](HttpRequestContext&){})
+					ApiEndPoint{[](HttpRequestContext&) {}}
 				}
 			}));
 	
