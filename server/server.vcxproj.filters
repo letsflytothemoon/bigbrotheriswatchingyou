@@ -16,6 +16,9 @@
     <Filter Include="web">
       <UniqueIdentifier>{ff4e7768-d3e8-442b-ac4c-79f477f75083}</UniqueIdentifier>
     </Filter>
+    <Filter Include="config">
+      <UniqueIdentifier>{f31719ac-b78f-4729-bbca-c73f52976064}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="servermain.cpp">
@@ -33,6 +36,9 @@
     </None>
     <None Include="log.html">
       <Filter>web</Filter>
+    </None>
+    <None Include="serverconfig.json">
+      <Filter>config</Filter>
     </None>
   </ItemGroup>
 </Project>

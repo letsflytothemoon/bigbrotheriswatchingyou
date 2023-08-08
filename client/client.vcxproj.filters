@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="config">
+      <UniqueIdentifier>{9513724c-3a2e-4d25-ba8e-b54bd403813c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="clientmain.cpp">
@@ -26,5 +29,10 @@
     <ClInclude Include="bitmaps.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="clientconfig.json">
+      <Filter>config</Filter>
+    </None>
   </ItemGroup>
 </Project>

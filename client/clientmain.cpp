@@ -70,7 +70,7 @@ int main()
             {
                 {
                     "takescreenshot",
-                    webserverlib::ApiEndPoint([](webserverlib::HttpRequestContext& context)
+                    webserverlib::ApiEndPoint{[](webserverlib::HttpRequestContext& context)
                     {
                         HDC hScreenDC = GetDC(0);
                         std::vector<unsigned char> screenShot(std::move(TakeScreenShot(hScreenDC)));
@@ -82,7 +82,7 @@ int main()
                         context.headers[http::field::content_transfer_encoding] = "binary";
                         context.headers[http::field::accept_ranges] = "bytes";
 
-                    })
+                    }}
                 }
             }));
 
