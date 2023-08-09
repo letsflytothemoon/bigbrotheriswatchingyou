@@ -4,3 +4,5 @@
 [submodule "webserverlib"]
 	path = webserverlib
 	url = git@github.com:letsflytothemoon/webserverlib
+[submodule "webserverlib/"]
+	branch = v1.0
