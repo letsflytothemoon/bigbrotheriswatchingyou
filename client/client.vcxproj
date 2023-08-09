@@ -148,9 +148,11 @@
   <ItemGroup>
     <ClCompile Include="bitmaps.cpp" />
     <ClCompile Include="clientmain.cpp" />
+    <ClCompile Include="monitorscount.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmaps.h" />
+    <ClInclude Include="monitorscount.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="clientconfig.json" />

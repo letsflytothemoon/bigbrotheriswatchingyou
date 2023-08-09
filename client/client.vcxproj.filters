@@ -24,9 +24,15 @@
     <ClCompile Include="bitmaps.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="monitorscount.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmaps.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="monitorscount.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
