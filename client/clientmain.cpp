@@ -10,6 +10,7 @@
 #include "../httpclient.h"
 #include "../webserverlib/webserver.h"
 #include "bitmaps.h"
+#include "monitorscount.h"
 
 std::atomic<bool> stop = false;
 
@@ -72,9 +73,19 @@ int main()
                     "takescreenshot",
                     webserverlib::ApiEndPoint{[](webserverlib::HttpRequestContext& context)
                     {
-                        HDC hScreenDC = GetDC(0);
-                        std::vector<unsigned char> screenShot(std::move(TakeScreenShot(hScreenDC)));
-                        ReleaseDC(0, hScreenDC);
+                        int monitorIndex;
+                        try
+                        {
+                            monitorIndex = atoi(context.GetPathStep().c_str());
+                            if (monitorIndex > MonitorsCount())
+                                throw http::status::not_found;
+                        }
+                        catch (const std::exception&)
+                        {
+                            throw http::status::bad_request;
+                        }
+
+                        std::vector<unsigned char> screenShot(std::move(TakeScreenShot(monitorIndex)));
 
                         context.responseStream.write((const char*)&screenShot[0], screenShot.size());
                         context.headers[http::field::content_disposition] = "attachment; filename = img.bmp";
@@ -82,6 +93,14 @@ int main()
                         context.headers[http::field::content_transfer_encoding] = "binary";
                         context.headers[http::field::accept_ranges] = "bytes";
 
+                    }}
+                },
+                {
+                    "monitorscount",
+                    webserverlib::ApiEndPoint{[](webserverlib::HttpRequestContext& context)
+                    {
+                        
+                        context.responseStream << "{ \"monitorsCount\" : " << MonitorsCount() << " }";
                     }}
                 }
             }));

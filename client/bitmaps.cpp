@@ -120,25 +120,51 @@ std::vector<unsigned char> CreateBMPFile(HDC hDC, HBITMAP hBMP)
     return result;
 }
 
-std::vector<unsigned char> TakeScreenShot(HDC hDC)
+std::vector<unsigned char> TakeScreenShot(int monitorIndex)
 {
     std::vector<unsigned char> result;
-    HBITMAP hScreenShotBitMap;
 
+    struct EnumDisplayMonitorsParams
     {
-        HDC hMemoryDC = CreateCompatibleDC(hDC);
-        int width = GetDeviceCaps(hDC, HORZRES);
-        int height = GetDeviceCaps(hDC, VERTRES);
-        hScreenShotBitMap = CreateCompatibleBitmap(hDC, width, height);
-        HBITMAP hStockBitmap = static_cast<HBITMAP>(SelectObject(hMemoryDC, hScreenShotBitMap));
-        BitBlt(hMemoryDC, 0, 0, width, height, hDC, 0, 0, SRCCOPY);
-        hScreenShotBitMap = static_cast<HBITMAP>(SelectObject(hMemoryDC, hStockBitmap));
-        DeleteDC(hMemoryDC);
-    }
+        int monitorIndex;
+        int currentMonitor;
+        HBITMAP hScreenShotBitMap;
+        HDC hMemDC;
 
-    result = std::move(CreateBMPFile(hDC, hScreenShotBitMap));
+    } enumDisplayMonitorsParams
+    {
+        monitorIndex,
+        0
+    };
 
-    DeleteObject(hScreenShotBitMap);
+    HDC hScreenDC = GetDC(0);
+
+    EnumDisplayMonitors(
+        hScreenDC,
+        NULL,
+        [](HMONITOR monitor, HDC hDC, LPRECT rect, LPARAM param)->BOOL __stdcall
+        {
+            EnumDisplayMonitorsParams& params = *(EnumDisplayMonitorsParams*)param;
+            if (params.currentMonitor++ < params.monitorIndex)
+                return true;
+
+            int width = rect->right - rect->left;
+            int height = rect->bottom - rect->top;
+            
+            params.hMemDC = CreateCompatibleDC(hDC);
+            params.hScreenShotBitMap = CreateCompatibleBitmap(hDC, width, height);
+            HBITMAP hStockBitMap = static_cast<HBITMAP>(SelectObject(params.hMemDC, params.hScreenShotBitMap));
+            BitBlt(params.hMemDC, 0, 0, width, height, hDC, rect->left, rect->top, SRCCOPY);
+            params.hScreenShotBitMap = static_cast<HBITMAP>(SelectObject(params.hMemDC, hStockBitMap));
+            
+            return false;
+        },
+        (LPARAM)&enumDisplayMonitorsParams);
+
+    result = std::move(CreateBMPFile(enumDisplayMonitorsParams.hMemDC, enumDisplayMonitorsParams.hScreenShotBitMap));
+    DeleteDC(enumDisplayMonitorsParams.hMemDC);
+    DeleteObject(enumDisplayMonitorsParams.hScreenShotBitMap);
+    ReleaseDC(0, hScreenDC);
 
     return result;
 }
