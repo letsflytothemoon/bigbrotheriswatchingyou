@@ -81,7 +81,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);D:\lib\boost_1_82_0\boost_1_82_0</ExternalIncludePath>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);E:\lib\boost_1_82_0</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -149,10 +149,12 @@
     <ClCompile Include="bitmaps.cpp" />
     <ClCompile Include="clientmain.cpp" />
     <ClCompile Include="monitorscount.cpp" />
+    <ClCompile Include="winapihelpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitmaps.h" />
     <ClInclude Include="monitorscount.h" />
+    <ClInclude Include="winapihelpers.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="clientconfig.json" />
